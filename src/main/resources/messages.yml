@@ -1,0 +1,197 @@
+# Living World — тексты. Формат: MiniMessage (https://docs.advntr.dev/minimessage/format.html)
+# Пользовательский ввод (имена регионов, игроков, кланов) всегда вставляется как обычный текст.
+
+prefix: "<#7fb069>🌿 Мир</#7fb069> <dark_gray>»</dark_gray> "
+
+common:
+  no-permission: "<red>Недостаточно прав.</red>"
+  players-only: "<red>Эта команда доступна только игроку.</red>"
+  world-disabled: "<gray>В этом мире Living World не действует.</gray>"
+  loading: "<gray>Сведения о регионе ещё собираются, попробуйте через секунду…</gray>"
+  storage-busy: "<red>Летопись сейчас занята, попробуйте чуть позже.</red>"
+  storage-error: "<red>Не удалось прочитать данные. Подробности в консоли.</red>"
+  unknown-subcommand: "<red>Неизвестная команда.</red> <gray>Помощь: /world help</gray>"
+
+help:
+  - "<#7fb069><bold>Живой мир</bold></#7fb069> <gray>— мир помнит, что вы с ним делаете.</gray>"
+  - "<yellow>/world</yellow> <gray>— состояние мира</gray>"
+  - "<yellow>/world region</yellow> <gray>— текущий регион: развитие, влияние, характер</gray>"
+  - "<yellow>/world ecology</yellow> <gray>— лес, животные и стабильность региона</gray>"
+  - "<yellow>/world history [all] [страница]</yellow> <gray>— летопись региона или всего мира</gray>"
+  - "<yellow>/world top [developed|stable|damaged|trade|green]</yellow> <gray>— рейтинги регионов</gray>"
+  - "<yellow>/world name <имя></yellow> <gray>— дать имя поселению (лидеру влияния)</gray>"
+  - "<yellow>/world hud</yellow> <gray>— панель региона (BossBar)</gray> <dark_gray>|</dark_gray> <yellow>/world notify</yellow> <gray>— подсказки при входе</gray>"
+
+overview:
+  header: "<#7fb069><bold>Состояние мира</bold></#7fb069> <dark_gray>(<regions> изученных регионов)</dark_gray>"
+  states: "<gray>Поселения:</gray> <white><settlements></white> <dark_gray>|</dark_gray> <gray>Торговые центры:</gray> <gold><hubs></gold> <dark_gray>|</dark_gray> <gray>Заброшено:</gray> <dark_gray><abandoned></dark_gray> <dark_gray>|</dark_gray> <gray>Истощено:</gray> <red><overexploited></red>"
+  ecology: "<gray>Средняя стабильность:</gray> <stability> <dark_gray>|</dark_gray> <gray>Лесистость:</gray> <forest>"
+  totals: "<gray>Вырублено брёвен:</gray> <white><logs></white> <dark_gray>|</dark_gray> <gray>Выращено деревьев:</gray> <green><trees></green>"
+  recent-header: "<gray>Последние события летописи:</gray>"
+  recent-empty: "<dark_gray>Летопись пока пуста.</dark_gray>"
+
+region:
+  header: "<#7fb069><bold><name></bold></#7fb069> <dark_gray>[<x>, <z>] · <profile></dark_gray>"
+  state: "<gray>Статус:</gray> <state> <dark_gray>|</dark_gray> <gray>Развитие:</gray> <development>"
+  traits: "<gray>Характер:</gray> <traits>"
+  no-traits: "<dark_gray>пока ничем не примечателен</dark_gray>"
+  influence-header: "<gray>Влияние:</gray>"
+  influence-line: " <dark_gray>•</dark_gray> <white><group></white> <dark_gray>—</dark_gray> <gray><score></gray><dominant>"
+  influence-dominant: " <gold>★ доминирует</gold>"
+  influence-none: " <dark_gray>• никто не оставил здесь заметного следа</dark_gray>"
+  stewards: "<gray>Хранители природы:</gray> <green><names></green>"
+  hint-header: "<gray>Что дальше:</gray>"
+  hints:
+    WILDERNESS: "<dark_gray>Стройте и живите здесь, чтобы основать поселение.</dark_gray>"
+    DEVELOPING: "<dark_gray>Регулярное присутствие и строительство превратят его в активное поселение.</dark_gray>"
+    ACTIVE: "<dark_gray>Оживлённая торговля сделает поселение торговым центром.</dark_gray>"
+    COMMERCIAL_HUB: "<dark_gray>Торговля должна продолжаться, иначе статус будет утрачен.</dark_gray>"
+    ABANDONED: "<dark_gray>Вернитесь и обживите регион — или природа заберёт его себе.</dark_gray>"
+    OVEREXPLOITED: "<dark_gray>Сажайте деревья и дайте животным отдохнуть — регион восстановится.</dark_gray>"
+
+ecology:
+  header: "<#7fb069><bold>Экология: <name></bold></#7fb069> <dark_gray>(<profile>)</dark_gray>"
+  forest: "<gray>Лес:</gray>          <bar> <value> <trend>"
+  stability: "<gray>Стабильность:</gray> <bar> <value> <trend>"
+  exploitation: "<gray>Эксплуатация:</gray> <bar> <value>"
+  recovery: "<gray>Скорость восстановления:</gray> <value>"
+  wildlife-header: "<gray>Животные:</gray>"
+  wildlife-line: " <dark_gray>•</dark_gray> <group>: <bar> <value>"
+  wildlife-none: " <dark_gray>• в этом биоме дикая фауна почти не водится</dark_gray>"
+  suppressed: " <red>(животные появляются реже)</red>"
+  verdict:
+    thriving: "<green>Природа процветает.</green>"
+    healthy: "<green>Экосистема в равновесии.</green>"
+    strained: "<yellow>Экосистема испытывает нагрузку.</yellow>"
+    damaged: "<gold>Экосистема серьёзно повреждена.</gold>"
+    critical: "<red>Регион на грани экологического краха.</red>"
+
+history:
+  header-region: "<#7fb069><bold>Летопись: <name></bold></#7fb069> <dark_gray>(стр. <page>)</dark_gray>"
+  header-world: "<#7fb069><bold>Летопись мира</bold></#7fb069> <dark_gray>(стр. <page>)</dark_gray>"
+  empty: "<dark_gray>Здесь пока ничего не произошло.</dark_gray>"
+  line: "<dark_gray><time></dark_gray> <text>"
+  more: "<dark_gray>Дальше: /world history <scope><next></dark_gray>"
+  notify: "<#7fb069>📜</#7fb069> <text>"
+  broadcast: "<#7fb069>📜 Летопись:</#7fb069> <text>"
+  events:
+    SETTLEMENT_FOUNDED: "<white><region></white>: <green>основано поселение</green>."
+    SETTLEMENT_GREW: "<white><region></white> стал <green>активным поселением</green>."
+    SETTLEMENT_DECLINED: "<white><region></white>: жизнь в поселении <yellow>затихает</yellow>."
+    BECAME_COMMERCIAL_HUB: "<white><region></white> стал <gold>торговым центром</gold>!"
+    HUB_STATUS_LOST: "<white><region></white> <yellow>утратил статус торгового центра</yellow>."
+    SETTLEMENT_ABANDONED: "<white><region></white> <gray>опустел — поселение заброшено</gray>."
+    SETTLEMENT_REVIVED: "<white><region></white>: <green>заброшенное поселение снова ожило</green>!"
+    RECLAIMED_BY_NATURE: "<white><region></white>: <dark_green>природа забрала покинутые земли</dark_green>."
+    REGION_OVEREXPLOITED: "<white><region></white> <red>истощён чрезмерной эксплуатацией</red>."
+    ECOLOGY_RESTORED: "<white><region></white>: <green>экологическое равновесие восстановлено</green>!"
+    DEFORESTATION: "<white><region></white>: <gold>лес сильно поредел</gold> (<value>)."
+    MASS_DEFORESTATION: "<white><region></white>: <red>массовая вырубка уничтожила лес</red> (<value>)."
+    FOREST_RESTORED: "<white><region></white>: <green>лес восстановился</green> (<value>)."
+    WILDLIFE_DECLINE: "<white><region></white>: <gold><subject> почти исчезли</gold>."
+    WILDLIFE_RECOVERED: "<white><region></white>: <green><subject> вернулись</green>."
+    INFLUENCE_SHIFT: "<white><region></white>: влияние перешло к <aqua><subject></aqua>."
+    STEWARD_MILESTONE: "<white><subject></white> вырастил(а) <green><value></green> деревьев в регионе <white><region></white>."
+    REGION_NAMED: "Регион [<subject>] получил имя <white><region></white>. Название дал(а) <aqua><actors></aqua>."
+
+top:
+  header: "<#7fb069><bold>Рейтинг: <metric></bold></#7fb069>"
+  line: "<gray><rank>.</gray> <white><name></white> <dark_gray>[<x>, <z>]</dark_gray> <state> <dark_gray>—</dark_gray> <value>"
+  empty: "<dark_gray>Пока нечего сравнивать.</dark_gray>"
+  unknown: "<red>Неизвестный рейтинг.</red> <gray>Доступно: developed, stable, damaged, trade, green</gray>"
+  metrics:
+    DEVELOPED: "самые развитые"
+    STABLE: "самые стабильные"
+    DAMAGED: "самые пострадавшие"
+    TRADE: "торговые"
+    GREEN: "самые зелёные"
+
+name:
+  usage: "<gray>Использование: /world name <имя> (3–32 символа)</gray>"
+  invalid: "<red>Имя может содержать только буквы, цифры, пробелы, дефис и апостроф (3–32 символа).</red>"
+  not-settlement: "<red>Имя можно дать только поселению.</red>"
+  not-dominant: "<red>Назвать регион может только группа, доминирующая по влиянию.</red>"
+  cooldown: "<red>Этот регион недавно переименовали.</red>"
+  success: "<green>Регион теперь называется</green> <white><name></white>."
+
+hud:
+  enabled: "<green>Панель региона включена.</green>"
+  disabled: "<gray>Панель региона выключена.</gray>"
+  notify-enabled: "<green>Подсказки при входе в регион включены.</green>"
+  notify-disabled: "<gray>Подсказки при входе в регион выключены.</gray>"
+  bossbar: "<name> · <state> · <gray>стабильность</gray> <stability>"
+  actionbar: "<#7fb069><name></#7fb069> <dark_gray>·</dark_gray> <state><extra>"
+  actionbar-damaged: " <dark_gray>·</dark_gray> <red>природа истощена</red>"
+  actionbar-thriving: " <dark_gray>·</dark_gray> <green>природа процветает</green>"
+
+admin:
+  usage: "<gray>/lwadmin <reload|save|stats|inspect|set|simulate|reset|purge-history></gray>"
+  reloaded: "<green>Конфигурация перезагружена.</green> <gray>Предупреждений: <warnings></gray>"
+  reload-failed: "<red>Ошибка перезагрузки, оставлена прежняя конфигурация:</red> <gray><error></gray>"
+  saved: "<green>Сохранение запущено.</green>"
+  save-busy: "<yellow>Предыдущее сохранение ещё выполняется.</yellow>"
+  set-usage: "<gray>/lwadmin set <forest|stability|development|exploitation|pop.<группа>|state> <значение></gray>"
+  set-done: "<green>Значение изменено.</green>"
+  set-invalid: "<red>Некорректное значение.</red>"
+  simulate-usage: "<gray>/lwadmin simulate <часы> — прогнать текущий регион вперёд</gray>"
+  simulate-done: "<green>Регион симулирован на <hours> ч.</green>"
+  reset-done: "<yellow>Данные региона удалены.</yellow>"
+  purge-done: "<yellow>Летопись очищена (<count> записей).</yellow>"
+
+names:
+  state:
+    WILDERNESS: "<dark_green>Нетронутая природа</dark_green>"
+    DEVELOPING: "<yellow>Развивающееся поселение</yellow>"
+    ACTIVE: "<green>Активное поселение</green>"
+    COMMERCIAL_HUB: "<gold>Торговый центр</gold>"
+    ABANDONED: "<gray>Заброшенное поселение</gray>"
+    OVEREXPLOITED: "<red>Истощённый регион</red>"
+  profile:
+    FOREST: "лес"
+    TAIGA: "тайга"
+    JUNGLE: "джунгли"
+    SWAMP: "болота"
+    PLAINS: "равнины"
+    SAVANNA: "саванна"
+    DESERT: "пустыня"
+    BADLANDS: "пустоши"
+    MOUNTAINS: "горы"
+    SNOWY: "снега"
+    BEACH: "побережье"
+    RIVER: "речная долина"
+    OCEAN: "океан"
+    MUSHROOM: "грибные земли"
+    CAVE: "пещеры"
+    OTHER: "земли"
+  species:
+    GRAZERS: "Травоядные"
+    SMALL_GAME: "Мелкая дичь"
+    PREDATORS: "Хищники"
+    AQUATIC: "Водные обитатели"
+  traits:
+    lumber: "<gold>лесозаготовки</gold>"
+    green: "<green>зелёный пояс</green>"
+    hunting: "<red>охотничьи угодья</red>"
+    market: "<gold>рыночные традиции</gold>"
+    builders: "<aqua>край строителей</aqua>"
+    wild: "<dark_green>дикие земли</dark_green>"
+    ruins: "<gray>память о былом</gray>"
+
+# Имена регионов генерируются детерминированно по координатам и биому.
+region-names:
+  FOREST: ["Шепчущий лес", "Дубовая роща", "Старый бор", "Тенистая чаща", "Берёзовая падь", "Мшистый лес", "Светлая роща", "Глухая дубрава"]
+  TAIGA: ["Хвойная глушь", "Еловый край", "Туманная тайга", "Смолистый бор", "Северная чаща", "Волчья падь"]
+  JUNGLE: ["Изумрудные джунгли", "Лиановый край", "Зелёный лабиринт", "Душные заросли", "Бамбуковая долина"]
+  SWAMP: ["Тихая топь", "Мангровый край", "Туманные болота", "Лягушачья заводь", "Гнилые плавни"]
+  PLAINS: ["Ковыльная степь", "Луговой простор", "Цветущий дол", "Ветреные поля", "Тихая равнина", "Золотые луга", "Широкое поле"]
+  SAVANNA: ["Знойная саванна", "Акациевый край", "Пыльные просторы", "Рыжая степь"]
+  DESERT: ["Песчаное море", "Сухие дюны", "Палящий край", "Безмолвные пески"]
+  BADLANDS: ["Красные пустоши", "Терракотовые столбы", "Ржавые холмы"]
+  MOUNTAINS: ["Каменные пики", "Ветреный перевал", "Седые склоны", "Орлиное нагорье", "Скалистый кряж"]
+  SNOWY: ["Ледяная пустошь", "Снежный простор", "Морозный край", "Белое безмолвие"]
+  BEACH: ["Песчаный берег", "Солёная коса", "Прибрежье чаек"]
+  RIVER: ["Речная излучина", "Тихая заводь", "Камышовая долина"]
+  OCEAN: ["Глубокие воды", "Бирюзовое море", "Холодный залив", "Открытый океан"]
+  MUSHROOM: ["Грибной остров", "Мицелиевые земли"]
+  CAVE: ["Подземные чертоги", "Сырые гроты"]
+  OTHER: ["Безымянные земли", "Дальний край", "Пограничье", "Забытые земли"]

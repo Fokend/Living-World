@@ -1,0 +1,8 @@
+.gradle/
+build/
+run/
+*.log
+/test-server/
+/test-server-*/
+.idea/
+*.iml

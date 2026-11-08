@@ -1,0 +1,29 @@
+name: LivingWorld
+version: '${version}'
+main: me.fokend.livingworld.LivingWorldPlugin
+api-version: '1.21'
+authors: [Fokend]
+description: Живой мир Svekla SMP — региональная экология, развитие поселений, дикая природа, влияние и летопись мира
+libraries:
+  - org.xerial:sqlite-jdbc:${sqliteVersion}
+commands:
+  world:
+    description: Состояние живого мира, текущего региона, экология, летопись и рейтинги
+    usage: /world [region|ecology|history|top|name|hud|notify|help]
+    aliases: [lw, livingworld, mir]
+    permission: livingworld.use
+  lwadmin:
+    description: Администрирование Living World
+    usage: /lwadmin <reload|save|stats|inspect|set|simulate|reset|purge-history>
+    aliases: [livingworldadmin]
+    permission: livingworld.admin
+permissions:
+  livingworld.use:
+    description: Просмотр состояния мира, региона, экологии и летописи
+    default: true
+  livingworld.name:
+    description: Право называть поселение, в котором доминирует группа игрока
+    default: true
+  livingworld.admin:
+    description: Администрирование Living World
+    default: op

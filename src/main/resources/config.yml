@@ -1,0 +1,246 @@
+# ============================================================================
+#  Living World — живой, развивающийся мир для Svekla SMP
+#  Все интервалы симуляции измеряются во ВРЕМЕНИ РАБОТЫ сервера ("сим-время"),
+#  умноженном на simulation.time-scale. Пока сервер выключен — мир не стареет.
+#  Некорректные значения не роняют плагин: они заменяются значениями по умолчанию
+#  или ограничиваются допустимым диапазоном, а в консоль выводится предупреждение.
+# ============================================================================
+
+config-version: 1
+
+general:
+  # Миры, в которых работает Living World. Пустой список = все миры.
+  enabled-worlds:
+    - world
+  # Размер региона в чанках (2..64). 16 чанков = 256x256 блоков.
+  # ВНИМАНИЕ: после появления данных размер фиксируется в базе. Чтобы его сменить,
+  # удалите living-world.db (история и состояние регионов будут потеряны).
+  region-size-chunks: 16
+  # Подробные диагностические сообщения в консоль.
+  debug: false
+
+simulation:
+  # Как часто регионы в памяти проходят шаг симуляции (секунды).
+  step-interval-seconds: 60
+  # Сколько регионов максимум обрабатывать за один тик (шаг размазывается по тикам).
+  max-regions-per-tick: 200
+  # Ускорение времени симуляции (1.0 = реальное время работы сервера). Удобно для тестов.
+  time-scale: 1.0
+  # Максимум дней, которые регион "догоняет" за один раз после долгого простоя.
+  max-catchup-days: 30.0
+  # Интервал автосохранения изменённых регионов и новой истории (секунды).
+  autosave-seconds: 120
+  # Как часто учитывается присутствие игроков в регионах (тики, 20 = 1 секунда).
+  presence-interval-ticks: 100
+
+ecology:
+  enabled: true
+  # Естественное восстановление леса: доля "недостающего" леса, восстанавливаемая за сутки
+  # при идеальной стабильности. Отражает самопосев и рост деревьев вне учёта игроков.
+  forest-regen-per-day: 0.02
+  # Минимальный множитель восстановления при нулевой стабильности (0..1).
+  min-regen-multiplier: 0.25
+  # Бонус к восстановлению природы в заброшенных поселениях.
+  abandoned-regen-bonus: 1.5
+  # Период полураспада, за который стабильность приближается к целевой (часы).
+  stability-half-life-hours: 24.0
+  # Вклад компонентов в экологическую стабильность.
+  stability-weights:
+    forest: 0.45
+    wildlife: 0.35
+    exploitation: 0.20
+  # Давление (доля ресурсов региона, изымаемая за сутки), при котором эксплуатация = 50%.
+  pressure-half-saturation: 0.10
+  # "Память" давления на ресурсы (дни).
+  pressure-memory-days: 1.0
+  # Вес охоты и добычи руды в давлении на ресурсы.
+  hunt-pressure-weight: 1.0
+  ore-pressure-weight: 0.15
+  # Условная "ёмкость" руды региона 256x256 за сутки (добыча руды почти не влияет на экологию).
+  ore-capacity: 400.0
+  events:
+    # Пороги лесной плотности для записей в историю (с гистерезисом).
+    deforestation-below: 0.5
+    critical-below: 0.2
+    restored-above: 0.8
+    # Не писать лесные события для регионов, где леса изначально почти нет (в брёвнах).
+    min-forest-capacity: 300.0
+
+wildlife:
+  enabled: true
+  # Популяции абстрактны: 1.0 = полная ёмкость биома. Мобы НЕ создаются и не перебираются.
+  groups:
+    grazers:
+      herd-size: 40.0
+      growth-per-day: 0.35
+      entities: [COW, MOOSHROOM, SHEEP, PIG, HORSE, DONKEY, MULE, GOAT, LLAMA, CAMEL, PANDA, SNIFFER]
+    small_game:
+      herd-size: 40.0
+      growth-per-day: 0.6
+      entities: [CHICKEN, RABBIT, FROG, ARMADILLO, PARROT]
+    predators:
+      herd-size: 10.0
+      growth-per-day: 0.2
+      entities: [WOLF, FOX, POLAR_BEAR, OCELOT]
+    aquatic:
+      herd-size: 80.0
+      growth-per-day: 0.5
+      entities: [COD, SALMON, TROPICAL_FISH, PUFFERFISH, SQUID, GLOW_SQUID, TURTLE, DOLPHIN, AXOLOTL]
+  # Приток животных из соседних земель (доля дефицита за сутки).
+  immigration-per-day: 0.03
+  # Ёмкость среды при нулевой стабильности (доля от максимальной).
+  min-carrying-capacity: 0.35
+  # Сколько "особей" водной фауны засчитывает один пойманный улов.
+  fish-catch-weight: 0.35
+  # Учитываются только дикие животные. Разведённые на фермах (BREEDING, SPAWNER, EGG ...)
+  # НЕ уменьшают популяцию — обычные фермы не наказываются.
+  counted-spawn-reasons: [NATURAL, CHUNK_GEN]
+  # Если популяция опустилась ниже порога, часть ЕСТЕСТВЕННЫХ спавнов этой группы отменяется.
+  spawn-suppression:
+    enabled: true
+    below-population: 0.4
+    max-chance: 0.6
+  events:
+    decline-below: 0.3
+    recovered-above: 0.7
+  # Начальная популяция новых регионов.
+  initial-population: 1.0
+
+development:
+  enabled: true
+  # "Память" активности (дни): насколько сглаживаются строительство, присутствие и торговля.
+  activity-memory-days: 2.0
+  weights:
+    build: 1.5
+    presence: 3.0
+    trade: 1.5
+  decay:
+    # Сколько дней без активности регион не теряет развитие.
+    grace-days: 3.0
+    # Период полураспада развития при отсутствии активности (дни).
+    half-life-days: 10.0
+  thresholds:
+    # Уровень развития 0..100.
+    developing: 8.0
+    active: 35.0
+    # Игроко-часов в сутки, чтобы поселение считалось активным.
+    active-presence-hours: 1.0
+    commercial-hub: 50.0
+    hub-trades-per-day: 40.0
+    # Гистерезис: чтобы потерять статус, показатель должен упасть ниже порога * keep-ratio.
+    keep-ratio: 0.6
+  abandonment:
+    # Заброшенным может стать только регион, достигший такого развития.
+    min-peak-development: 20.0
+    # Дней сим-времени без значимой активности до статуса "заброшено".
+    inactive-days: 14.0
+    # Присутствие (игроко-часов в сутки), возрождающее заброшенное поселение.
+    revive-presence-hours: 0.5
+    # Природа "забирает" регион, когда развитие ниже и лес выше этих значений.
+    reclaim-development-below: 3.0
+    reclaim-forest-above: 0.6
+  overexploited:
+    enter-stability-below: 0.30
+    enter-exploitation-above: 0.75
+    exit-stability-above: 0.45
+    exit-exploitation-below: 0.50
+  # Новое состояние должно удерживаться столько минут, прежде чем переход засчитается.
+  transition-confirm-minutes: 30.0
+  # Антиспам: сколько строительных действий одного игрока в минуту засчитывается.
+  max-build-actions-per-minute: 120
+
+influence:
+  # Влияние — только репутация/присутствие. Оно НЕ даёт владения территорией и прав на блоки.
+  enabled: true
+  # Группа влияния по умолчанию — сам игрок. Клановая система подключается через API
+  # (InfluenceGroupResolver). Этот адаптер использует ванильные scoreboard-команды как группы.
+  scoreboard-team-adapter: false
+  gain:
+    presence-per-minute: 0.1
+    per-build-action: 0.02
+    per-trade: 0.25
+    per-tree-grown: 0.5
+  half-life-days: 7.0
+  min-score: 0.5
+  dominance:
+    min-score: 25.0
+    # Лидер должен опережать второго в столько раз.
+    ratio: 1.5
+  spread:
+    # Влияние распространяется только на соседние регионы, уже находящиеся в памяти.
+    min-score: 60.0
+    per-day: 0.02
+    cap: 0.5
+
+history:
+  enabled: true
+  # Ограничения хранения летописи.
+  max-events: 5000
+  max-age-days: 180
+  # Сколько последних событий держать в памяти для быстрого показа.
+  memory-recent: 100
+  # Защита от лавины записей.
+  max-events-per-hour: 120
+  # Сообщать игрокам в регионе о событиях этого региона.
+  notify-region-players: true
+  # Объявлять на весь сервер крупные события.
+  broadcast-major: true
+  # Сколько деревьев должен вырастить игрок в регионе, чтобы попасть в летопись.
+  steward-milestones: [25, 100, 250]
+
+cache:
+  # Максимум регионов в памяти. Чистые простаивающие регионы выгружаются.
+  max-loaded-regions: 2048
+  idle-evict-minutes: 10
+  # Максимум одновременно загружаемых регионов.
+  max-pending-loads: 256
+  # Ёмкость очереди операций с базой данных.
+  storage-queue-capacity: 512
+  # Сколько посаженных саженцев помнить для начисления заслуг (0 = не отслеживать).
+  sapling-memory: 8192
+  # Сколько поставленных игроками брёвен помнить, чтобы их разбор не считался вырубкой.
+  placed-log-memory: 4096
+  # Фоновый досчёт регионов, которые давно никто не посещал (без загрузки чанков).
+  dormant-sweep:
+    enabled: true
+    interval-minutes: 10
+    batch-size: 32
+    min-stale-hours: 6.0
+
+tracking:
+  blocks: true
+  hunting: true
+  fishing: true
+  trades: true
+  presence: true
+  # Игнорировать действия в творческом режиме и режиме наблюдателя.
+  ignore-creative: true
+
+interface:
+  # Короткое сообщение над хотбаром при входе в другой регион.
+  actionbar-on-enter: true
+  # Включён ли BossBar региона по умолчанию (игрок переключает: /world hud).
+  bossbar-default: false
+  # Клиентские частицы, отражающие состояние региона (видны только игроку).
+  ambient-particles: true
+  particle-chance: 0.15
+
+# Профили биомов: ёмкость леса (брёвен на регион 256x256) и множители ёмкости фауны.
+# 0 означает, что группа животных в этом биоме не обитает.
+biome-profiles:
+  forest:    { forest-capacity: 4000.0, wildlife: { grazers: 1.0, small_game: 1.0, predators: 0.8, aquatic: 0.2 } }
+  taiga:     { forest-capacity: 4000.0, wildlife: { grazers: 0.8, small_game: 1.0, predators: 1.0, aquatic: 0.2 } }
+  jungle:    { forest-capacity: 6000.0, wildlife: { grazers: 0.6, small_game: 1.0, predators: 0.6, aquatic: 0.3 } }
+  swamp:     { forest-capacity: 2000.0, wildlife: { grazers: 0.4, small_game: 1.0, predators: 0.3, aquatic: 0.6 } }
+  plains:    { forest-capacity: 600.0,  wildlife: { grazers: 1.0, small_game: 1.0, predators: 0.4, aquatic: 0.2 } }
+  savanna:   { forest-capacity: 1200.0, wildlife: { grazers: 1.0, small_game: 0.6, predators: 0.5, aquatic: 0.1 } }
+  desert:    { forest-capacity: 100.0,  wildlife: { grazers: 0.3, small_game: 0.8, predators: 0.1, aquatic: 0.0 } }
+  badlands:  { forest-capacity: 150.0,  wildlife: { grazers: 0.2, small_game: 0.5, predators: 0.1, aquatic: 0.0 } }
+  mountains: { forest-capacity: 800.0,  wildlife: { grazers: 0.8, small_game: 0.6, predators: 0.5, aquatic: 0.1 } }
+  snowy:     { forest-capacity: 800.0,  wildlife: { grazers: 0.5, small_game: 0.8, predators: 0.8, aquatic: 0.3 } }
+  beach:     { forest-capacity: 200.0,  wildlife: { grazers: 0.2, small_game: 0.6, predators: 0.1, aquatic: 0.8 } }
+  river:     { forest-capacity: 600.0,  wildlife: { grazers: 0.6, small_game: 0.8, predators: 0.3, aquatic: 1.0 } }
+  ocean:     { forest-capacity: 200.0,  wildlife: { grazers: 0.0, small_game: 0.0, predators: 0.0, aquatic: 1.0 } }
+  mushroom:  { forest-capacity: 300.0,  wildlife: { grazers: 1.0, small_game: 0.0, predators: 0.0, aquatic: 0.3 } }
+  cave:      { forest-capacity: 300.0,  wildlife: { grazers: 0.3, small_game: 0.3, predators: 0.1, aquatic: 0.6 } }
+  other:     { forest-capacity: 1000.0, wildlife: { grazers: 0.6, small_game: 0.6, predators: 0.4, aquatic: 0.3 } }
