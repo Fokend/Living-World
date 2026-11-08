@@ -50,6 +50,7 @@ public final class RegionSimulator {
         }
         double dt = Math.min(dtMs / DAY_MS, cfg.simulation().maxCatchupDays());
         Accumulators a = r.accumulators();
+        boolean quietCatchUp = a.isEmpty();
         LivingWorldConfig.Ecology eco = cfg.ecology();
         LivingWorldConfig.Wildlife wl = cfg.wildlife();
 
@@ -141,7 +142,7 @@ public final class RegionSimulator {
                 d *= Math.exp(-LN2 / dev.decayHalfLifeDays() * dt);
             }
             r.development(d);
-            updateState(r, nowSim, nowWall, out);
+            updateState(r, nowSim, nowWall, quietCatchUp ? dtMs : 0L, out);
         }
 
         // ---------------------------------------------------------------- 5. influence & stewards
@@ -221,7 +222,13 @@ public final class RegionSimulator {
         return developing ? DevelopmentState.DEVELOPING : DevelopmentState.WILDERNESS;
     }
 
-    private void updateState(RegionState r, long nowSim, long nowWall, StepOutput out) {
+    /**
+     * @param quietSpanMs length of the step if it was a pure catch-up without any recorded activity, else 0.
+     *                    Such a span already proves the new state was stable for that long, so it counts
+     *                    toward the confirmation delay (otherwise rarely visited regions would only ever
+     *                    "propose" transitions).
+     */
+    private void updateState(RegionState r, long nowSim, long nowWall, long quietSpanMs, StepOutput out) {
         DevelopmentState desired = desiredState(r, nowSim);
         if (desired == r.state()) {
             r.candidateState(null);
@@ -230,10 +237,8 @@ public final class RegionSimulator {
         long confirmMs = (long) (cfg.development().confirmMinutes() * 60_000L);
         if (r.candidateState() != desired) {
             r.candidateState(desired);
-            r.candidateSince(nowSim);
-            if (confirmMs > 0) {
-                return;
-            }
+            // after a quiet catch-up the new state has effectively held since the start of that span
+            r.candidateSince(nowSim - Math.max(0, quietSpanMs));
         }
         if (nowSim - r.candidateSince() < confirmMs) {
             return;

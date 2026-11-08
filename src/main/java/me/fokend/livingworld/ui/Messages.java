@@ -29,7 +29,7 @@ public final class Messages {
             try (InputStreamReader reader = new InputStreamReader(bundled, StandardCharsets.UTF_8)) {
                 defaults = YamlConfiguration.loadConfiguration(reader);
             } catch (Exception ex) {
-                logger.warning("[LivingWorld] Cannot read bundled messages.yml: " + ex.getMessage());
+                logger.warning("Cannot read bundled messages.yml: " + ex.getMessage());
             }
         }
         YamlConfiguration user = file != null && file.exists() ? YamlConfiguration.loadConfiguration(file)

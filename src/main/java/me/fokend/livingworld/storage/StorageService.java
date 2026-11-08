@@ -39,7 +39,7 @@ public final class StorageService {
                     Thread t = new Thread(r, "LivingWorld-Storage");
                     t.setDaemon(true);
                     t.setUncaughtExceptionHandler((th, ex) ->
-                            logger.log(Level.SEVERE, "[LivingWorld] Uncaught error in storage thread", ex));
+                            logger.log(Level.SEVERE, "Uncaught error in storage thread", ex));
                     return t;
                 }, new ThreadPoolExecutor.AbortPolicy());
     }
@@ -63,7 +63,7 @@ public final class StorageService {
                     if (onError != null) {
                         mainThread.execute(() -> onError.accept(ex));
                     } else {
-                        logger.log(Level.WARNING, "[LivingWorld] Storage operation failed", ex);
+                        logger.log(Level.WARNING, "Storage operation failed", ex);
                     }
                     return;
                 }
@@ -110,7 +110,7 @@ public final class StorageService {
         try {
             terminated = executor.awaitTermination(timeoutSeconds, TimeUnit.SECONDS);
             if (!terminated) {
-                logger.warning("[LivingWorld] Storage thread did not finish in " + timeoutSeconds
+                logger.warning("Storage thread did not finish in " + timeoutSeconds
                         + "s, interrupting it (" + executor.getQueue().size() + " queued tasks dropped)");
                 executor.shutdownNow();
                 terminated = executor.awaitTermination(5, TimeUnit.SECONDS);
@@ -124,10 +124,10 @@ public final class StorageService {
             try {
                 finalWork.run(storage);
             } catch (Exception ex) {
-                logger.log(Level.SEVERE, "[LivingWorld] Final save failed", ex);
+                logger.log(Level.SEVERE, "Final save failed", ex);
             }
         } else if (!terminated) {
-            logger.severe("[LivingWorld] Storage thread is stuck; skipping the final save to avoid concurrent "
+            logger.severe("Storage thread is stuck; skipping the final save to avoid concurrent "
                     + "database access. Data since the last autosave may be lost.");
         }
         if (terminated) {

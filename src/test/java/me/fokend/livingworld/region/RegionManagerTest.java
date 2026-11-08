@@ -270,11 +270,38 @@ class RegionManagerTest {
         pump();
         RegionState swept = manager.getLoaded(key);
         assertNotNull(swept, "sweep loaded the stale region");
-        assertEquals(DevelopmentState.ACTIVE, swept.state(), "candidate needs confirmation");
-        clock.advance(DAY);
-        manager.stepRegion(swept, clock.now(), 0);
-        assertEquals(DevelopmentState.ABANDONED, swept.state());
+        assertEquals(DevelopmentState.ABANDONED, swept.state(),
+                "a quiet 20-day catch-up confirms the transition immediately");
         assertTrue(history.recent(10).stream().anyMatch(e -> e.type() == HistoryEventType.SETTLEMENT_ABANDONED));
+        stop();
+    }
+
+    @Test
+    void fastForwardAdvancesConfirmationTimers() throws Exception {
+        start(cfg(2048, 256), 0);
+        RegionKey key = new RegionKey("world", 1, 1);
+        manager.activity(key, () -> BiomeProfile.PLAINS, 0);
+        pump();
+        RegionState r = manager.getLoaded(key);
+        r.development(60);
+        manager.fastForward(r, 10 * 60_000L);
+        assertEquals(DevelopmentState.WILDERNESS, r.state(), "10 quiet minutes < 30 minute confirmation");
+        manager.fastForward(r, 25 * 60_000L);
+        assertEquals(DevelopmentState.DEVELOPING, r.state(), "clock did not move, but the region's time did");
+        stop();
+    }
+
+    @Test
+    void flushedHistoryIsVisibleToTheNextQuery() throws Exception {
+        start(cfg(2048, 256), 0);
+        RegionKey key = new RegionKey("world", 2, 2);
+        history.record(me.fokend.livingworld.model.HistoryEvent.of(5, HistoryEventType.DEFORESTATION, key, 0.4, "", ""));
+        manager.flushHistory();
+        java.util.concurrent.atomic.AtomicInteger seen = new java.util.concurrent.atomic.AtomicInteger(-1);
+        storage.submit(st -> st.history(key, 0, 10).size(), seen::set, null);
+        pump();
+        assertEquals(1, seen.get());
+        assertEquals(0, history.unsavedSize());
         stop();
     }
 

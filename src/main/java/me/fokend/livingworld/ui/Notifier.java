@@ -29,6 +29,10 @@ public final class Notifier implements RegionManager.TransitionListener {
     private final Format format;
     private final HudService hud;
     private final Supplier<LivingWorldConfig> cfg;
+    /** At most this many server-wide announcements per minute; the rest stay in the chronicle only. */
+    private static final int MAX_BROADCASTS_PER_MINUTE = 3;
+    private long broadcastWindowStart;
+    private int broadcastsInWindow;
 
     public Notifier(RegionManager regions, SessionRegistry sessions, Format format, HudService hud,
                     Supplier<LivingWorldConfig> cfg) {
@@ -46,7 +50,7 @@ public final class Notifier implements RegionManager.TransitionListener {
         String name = r != null ? format.regionName(r) : format.regionName(event.region(), null, BiomeProfile.OTHER);
         Component text = format.historyText(event, name);
         HistoryEventType.Significance sig = event.type().significance();
-        if (h.broadcastMajor() && sig == HistoryEventType.Significance.MAJOR) {
+        if (h.broadcastMajor() && sig == HistoryEventType.Significance.MAJOR && allowBroadcast()) {
             Bukkit.getServer().sendMessage(format.messages().prefixed("history.broadcast",
                     Placeholder.component("text", text)));
             return;
@@ -63,6 +67,15 @@ public final class Notifier implements RegionManager.TransitionListener {
                 }
             }
         }
+    }
+
+    private boolean allowBroadcast() {
+        long now = System.currentTimeMillis();
+        if (now - broadcastWindowStart >= 60_000L) {
+            broadcastWindowStart = now;
+            broadcastsInWindow = 0;
+        }
+        return broadcastsInWindow++ < MAX_BROADCASTS_PER_MINUTE;
     }
 
     @Override

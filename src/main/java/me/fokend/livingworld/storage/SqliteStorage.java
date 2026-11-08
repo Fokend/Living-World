@@ -151,7 +151,7 @@ public final class SqliteStorage implements AutoCloseable {
     private void quarantine(String reason) throws StorageException {
         closeQuietly();
         String suffix = ".corrupt-" + System.currentTimeMillis();
-        logger.severe("[LivingWorld] Database " + file.getName() + " is corrupted (" + reason + "). Moving it to "
+        logger.severe("Database " + file.getName() + " is corrupted (" + reason + "). Moving it to "
                 + file.getName() + suffix + " and starting with a fresh database.");
         for (String ext : new String[]{"", "-wal", "-shm"}) {
             File f = new File(file.getPath() + ext);
@@ -179,7 +179,7 @@ public final class SqliteStorage implements AutoCloseable {
                     }
                     putMeta("schema_version", String.valueOf(v + 1));
                     connection.commit();
-                    logger.info("[LivingWorld] Database migrated to schema v" + (v + 1));
+                    logger.info("Database migrated to schema v" + (v + 1));
                 } catch (SQLException ex) {
                     connection.rollback();
                     throw ex;
@@ -202,7 +202,7 @@ public final class SqliteStorage implements AutoCloseable {
             try {
                 connection.close();
             } catch (SQLException ex) {
-                logger.log(Level.WARNING, "[LivingWorld] Error closing database", ex);
+                logger.log(Level.WARNING, "Error closing database", ex);
             }
             connection = null;
         }
@@ -419,6 +419,14 @@ public final class SqliteStorage implements AutoCloseable {
             throw ex;
         } finally {
             connection.setAutoCommit(true);
+        }
+    }
+
+    /** Latest simulation timestamp of any region (0 if none); guards against a lost/corrupted clock. */
+    public long maxLastSimulated() throws SQLException {
+        try (Statement st = connection.createStatement();
+             ResultSet rs = st.executeQuery("SELECT COALESCE(MAX(last_simulated), 0) FROM lw_regions")) {
+            return rs.next() ? rs.getLong(1) : 0;
         }
     }
 

@@ -111,6 +111,8 @@ public final class WorldCommand implements TabExecutor {
     // ================================================================== /world
 
     private void overview(CommandSender sender) {
+        regions().saveSoon(System.currentTimeMillis());
+        regions().flushHistory();
         SenderRef ref = SenderRef.of(sender);
         boolean ok = plugin.storage().submit(st -> st.stats(), stats -> {
             CommandSender to = ref.resolve();
@@ -275,6 +277,7 @@ public final class WorldCommand implements TabExecutor {
                 regionName = r != null ? fmt().regionName(r) : fmt().regionName(key, null, null);
             }
         }
+        regions().flushHistory();
         final RegionKey queryKey = key;
         final String header = regionName;
         final int p = page;
@@ -321,6 +324,7 @@ public final class WorldCommand implements TabExecutor {
             sender.sendMessage(msg().prefixed("top.unknown"));
             return;
         }
+        regions().saveSoon(System.currentTimeMillis());
         SenderRef ref = SenderRef.of(sender);
         boolean ok = plugin.storage().submit(st -> st.top(metric, null, TOP_SIZE), rows -> {
             CommandSender to = ref.resolve();
@@ -390,6 +394,10 @@ public final class WorldCommand implements TabExecutor {
                 session.lastRename(now);
             }
             String old = fmt().regionName(r);
+            if (old.equals(name)) {
+                player.sendMessage(msg().prefixed("name.success", Placeholder.unparsed("name", name)));
+                return;
+            }
             r.customName(name);
             r.markDirty();
             plugin.history().record(HistoryEvent.of(now, HistoryEventType.REGION_NAMED, r.key(), r.development(),

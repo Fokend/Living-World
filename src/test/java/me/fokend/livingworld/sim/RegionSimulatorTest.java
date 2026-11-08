@@ -232,6 +232,18 @@ class RegionSimulatorTest {
     }
 
     @Test
+    void activeLongStepStillNeedsConfirmation() {
+        RegionState r = region(BiomeProfile.PLAINS);
+        r.development(9);
+        r.accumulators().buildActions = 1; // activity happened => not a quiet catch-up
+        StepOutput out = new StepOutput();
+        now += 2 * DAY;
+        sim.step(r, now, now, out);
+        assertEquals(DevelopmentState.WILDERNESS, r.state());
+        assertEquals(DevelopmentState.DEVELOPING, r.candidateState());
+    }
+
+    @Test
     void influenceDecaysDominatesAndStaysBounded() {
         RegionState r = region(BiomeProfile.PLAINS);
         r.accumulators().addInfluence("clan", "Clan", 500);

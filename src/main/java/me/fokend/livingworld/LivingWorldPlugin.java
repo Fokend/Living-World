@@ -93,6 +93,12 @@ public final class LivingWorldPlugin extends JavaPlugin {
                 sqlite.putMeta(META_REGION_SIZE, String.valueOf(storedRegionSize));
             }
             simClock = sqlite.metaLong("sim_clock", 0);
+            long newestRegion = sqlite.maxLastSimulated();
+            if (newestRegion > simClock) {
+                getLogger().warning("Simulation clock in the database (" + simClock + ") is behind the newest region ("
+                        + newestRegion + "); the clock entry was probably lost. Resuming from the region data.");
+                simClock = newestRegion;
+            }
         } catch (StorageException | java.sql.SQLException ex) {
             getLogger().log(Level.SEVERE, "Cannot open the Living World database; disabling the plugin", ex);
             sqlite.close();
@@ -270,9 +276,10 @@ public final class LivingWorldPlugin extends JavaPlugin {
         HandlerList.unregisterAll(this);
         getServer().getServicesManager().unregisterAll(this);
         if (sessions != null) {
-            for (PlayerSession s : List.copyOf(sessions.all())) {
-                Player p = getServer().getPlayer(s.playerId());
-                hud.hideBossBar(p, s);
+            if (hud != null) {
+                for (PlayerSession s : List.copyOf(sessions.all())) {
+                    hud.hideBossBar(getServer().getPlayer(s.playerId()), s);
+                }
             }
             sessions.clear();
         }
@@ -312,6 +319,11 @@ public final class LivingWorldPlugin extends JavaPlugin {
         wildlifeListener = null;
         hud = null;
         tasks = null;
+        clock = null;
+        // Paper may keep a reference to the last disabled plugin instance; keep that object empty.
+        messages = null;
+        format = null;
+        config = null;
         getLogger().info("Living World disabled, data saved.");
     }
 

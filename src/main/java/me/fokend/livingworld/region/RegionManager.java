@@ -80,6 +80,7 @@ public final class RegionManager {
     private TransitionListener transitionListener;
 
     private boolean saveInFlight;
+    private long lastSaveRequest;
     private boolean sweepInFlight;
     private long nextPassAt;
     private long lastLoadErrorLog;
@@ -231,7 +232,7 @@ public final class RegionManager {
         failed.put(key, now + FAILED_RETRY_MS);
         if (now - lastLoadErrorLog > 30_000L) {
             lastLoadErrorLog = now;
-            logger.log(Level.WARNING, "[LivingWorld] Failed to load region " + key + " (will retry later)", error);
+            logger.log(Level.WARNING, "Failed to load region " + key + " (will retry later)", error);
         }
     }
 
@@ -292,7 +293,7 @@ public final class RegionManager {
                 try {
                     transitionListener.onTransition(r, t);
                 } catch (RuntimeException ex) {
-                    logger.log(Level.WARNING, "[LivingWorld] Transition listener failed", ex);
+                    logger.log(Level.WARNING, "Transition listener failed", ex);
                 }
             }
         }
@@ -301,10 +302,43 @@ public final class RegionManager {
         }
     }
 
-    /** Admin/test hook: simulates {@code millis} of extra time for one resident region only. */
+    /**
+     * Admin/test hook: simulates {@code millis} of extra time for one resident region only. All of the
+     * region's simulation timestamps are shifted into the past, which is equivalent to that much time
+     * having passed for this region (confirmation timers and inactivity included).
+     */
     public void fastForward(RegionState r, long millis) {
-        r.lastSimulatedSim(r.lastSimulatedSim() - Math.max(0, millis));
+        long shift = Math.max(0, millis);
+        r.lastSimulatedSim(r.lastSimulatedSim() - shift);
+        if (r.candidateState() != null) {
+            r.candidateSince(r.candidateSince() - shift);
+        }
+        if (r.lastActivitySim() > 0) {
+            r.lastActivitySim(Math.max(1, r.lastActivitySim() - shift));
+        }
         stepRegion(r, clock.now(), System.currentTimeMillis());
+    }
+
+    /**
+     * Persists pending chronicle entries right away (without waiting for the autosave), so that a history
+     * query submitted afterwards sees them: the storage thread executes work strictly in order.
+     */
+    public void flushHistory() {
+        List<HistoryEvent> events = history.drainUnsaved();
+        if (events.isEmpty()) {
+            return;
+        }
+        long simNow = clock.tick();
+        boolean accepted = storage.submit(st -> {
+            st.saveBatch(List.of(), events, simNow);
+            return null;
+        }, null, error -> {
+            history.requeue(events);
+            logger.log(Level.WARNING, "Saving chronicle entries failed; they will be retried", error);
+        });
+        if (!accepted) {
+            history.requeue(events);
+        }
     }
 
     // ===================================================================== persistence
@@ -335,7 +369,7 @@ public final class RegionManager {
         }, count -> saveInFlight = false, error -> {
             saveInFlight = false;
             restoreDirty(keys, events);
-            logger.log(Level.SEVERE, "[LivingWorld] Autosave failed; data stays in memory and will be retried", error);
+            logger.log(Level.SEVERE, "Autosave failed; data stays in memory and will be retried", error);
         });
         if (!accepted) {
             saveInFlight = false;
@@ -343,6 +377,17 @@ public final class RegionManager {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Saves dirty regions before a ranking/overview query, so that it reflects the current state. Rate
+     * limited, so spamming commands cannot turn into a stream of database writes.
+     */
+    public void saveSoon(long nowWall) {
+        if (nowWall - lastSaveRequest >= 5_000L) {
+            lastSaveRequest = nowWall;
+            saveAsync();
+        }
     }
 
     private void restoreDirty(Collection<RegionKey> keys, List<HistoryEvent> events) {
@@ -456,7 +501,7 @@ public final class RegionManager {
             }
         }, error -> {
             sweepInFlight = false;
-            logger.log(Level.WARNING, "[LivingWorld] Dormant sweep query failed", error);
+            logger.log(Level.WARNING, "Dormant sweep query failed", error);
         });
         if (!accepted) {
             sweepInFlight = false;

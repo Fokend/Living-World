@@ -69,10 +69,11 @@ public final class Format {
     }
 
     public static String number(double v) {
-        if (Math.abs(v) >= 100) {
+        double a = Math.abs(v);
+        if (a >= 100) {
             return String.valueOf(Math.round(v));
         }
-        return String.format(Locale.ROOT, "%.1f", v);
+        return String.format(Locale.ROOT, a < 1 && a > 0 ? "%.2f" : "%.1f", v);
     }
 
     /** A ten-segment bar coloured from red (0) to green (1); {@code inverted} for "lower is better". */

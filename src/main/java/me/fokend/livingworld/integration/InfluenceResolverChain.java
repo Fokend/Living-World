@@ -40,7 +40,7 @@ public final class InfluenceResolverChain {
             throw new IllegalStateException("too many influence resolvers registered");
         }
         external.add(0, new Registration(owner, resolver));
-        logger.info("[LivingWorld] Influence resolver registered by " + owner.getName());
+        logger.info("Influence resolver registered by " + owner.getName());
     }
 
     public void unregister(Plugin owner) {
@@ -78,7 +78,7 @@ public final class InfluenceResolverChain {
             long now = System.currentTimeMillis();
             if (now - lastErrorLog > 60_000L) {
                 lastErrorLog = now;
-                logger.log(Level.WARNING, "[LivingWorld] Influence resolver failed; falling back", ex);
+                logger.log(Level.WARNING, "Influence resolver failed; falling back", ex);
             }
             return null;
         }
